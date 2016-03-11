@@ -45,7 +45,7 @@ begin
     # GET FILE NAME OF CURRENT VIDEO
     dvs = $viewers.dataViewers.toArray              # get data viewers (one for each media source)
     if dvs.length>0                                 # if vide files attached:
-        videoFileName = dvs[0].getDataFeed          #   take first media file (THIS CAN BE CHANGED)
+        videoFileName = dvs[0].getDataFeed.to_s     #   take first media file (THIS CAN BE CHANGED)
     else                                            # otherwise
         raise "No connection to video."             #   error message
     end
@@ -84,11 +84,10 @@ begin
         metaComment = '"' + comment + '"'        # comment included in metadata: comment
         
         # write ffmpeg command with all parameters to batch file
-        batchFile.syswrite(ffmpegCommand + " -ss " + (cell.onset/1000.0).to_s + " -i "  + videoFileName 
-                        + " -metadata title=" + metaTitle + " -metadata comment=" +  metaComment   
-                        + " -c:v " + ffmpegCode + " -preset " + ffmpegPreset + " -crf 22 " + ffmpegAudio 
+        batchFile.syswrite(ffmpegCommand + " -ss " + (cell.onset/1000.0).to_s + " -i "  + videoFileName \
+                        + " -metadata title=" + metaTitle + " -metadata comment=" +  metaComment \  
+                        + " -c:v " + ffmpegCode + " -preset " + ffmpegPreset + " -crf 22 " + ffmpegAudio \
                         + " -t " + (duration.to_i/1000.0).to_s + " " + videoClipName + "\r\n")
-    
     end    
 
     # SUMMARY OUTPUT AT END
