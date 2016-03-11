@@ -84,10 +84,10 @@ begin
         metaComment = '"' + comment + '"'        # comment included in metadata: comment
         
         # write ffmpeg command with all parameters to batch file
-        batchFile.syswrite(ffmpegCommand + " -ss " + (cell.onset/1000.0).to_s + " -i "  + videoFileName \
-                        + " -metadata title=" + metaTitle + " -metadata comment=" +  metaComment \  
-                        + " -c:v " + ffmpegCode + " -preset " + ffmpegPreset + " -crf 22 " + ffmpegAudio \
-                        + " -t " + (duration.to_i/1000.0).to_s + " " + videoClipName + "\r\n")
+        batchFile.syswrite(ffmpegCommand + " -ss " + (cell.onset/1000.0).to_s + " -i "  + videoFileName +
+                         " -metadata title=" + metaTitle + " -metadata comment=" +  metaComment +  
+                         " -c:v " + ffmpegCode + " -preset " + ffmpegPreset + " -crf 22 " + ffmpegAudio +
+                         " -t " + (duration.to_i/1000.0).to_s + " " + videoClipName + "\r\n")
     end    
 
     # SUMMARY OUTPUT AT END
