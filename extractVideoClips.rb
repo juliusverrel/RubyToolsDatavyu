@@ -18,10 +18,11 @@ require 'Datavyu_API.rb'
 
 begin
 	# MAIN SETTINGS(ADJUST TO YOUR SYSTEM AND REQUIREMENTS)
-	outputDir = "~/Desktop/Video-Tool/VideoClips/"  # output path for batch file and video clips
+	outputDir = "~/Desktop/Video-Tool/VideoClips/" 	# output path for batch file and video clips
 	batCommand = 'extractClips.bat'					# name of batch file
-	videoColumn = 'video'                          	# name of the column defining the video clips
-    infoName = 'info'								# name of cell code n videoColumn, that contains
+	videoColumn = 'video' 							# name of the column defining the video clips
+    videoClipName = 'Clip'							# name of video clips (idx and info will be added)
+	infoName = 'info'								# name of cell code n videoColumn, that contains
 													# general info to be included as metadata (title)
 	commentName = 'comment'							# name of cell code n videoColumn, that contains
 													# comment to be included as metadata (comment)
@@ -44,7 +45,7 @@ begin
 	# GET FILE NAME OF CURRENT VIDEO
 	dvs = $viewers.dataViewers.toArray   			# get data viewers (one for each media source)
 	if dvs.length>0  								# if vide files attached:
-		videoFileName = dvs[0].getDataFeed			# 	take first media file (THIS CAN BE CHANGED)
+		videoFileName = dvs[0].getDataFeed			#   take first media file (THIS CAN BE CHANGED)
 	else											# otherwise
 		raise "No connection to video." 			# 	error message
 	end
@@ -66,27 +67,28 @@ begin
 	
 	in_video = videoFileName 
 	projectName = $pj.getProjectName
-	count = 0 										# count trial numbers - included in name of video
+	count = 0 										# idx counting video number
 	
 	# loop that goes through all cells in the video-column
 	for cell in video.cells	
 			
-		# check names for special characters, thus that files can be generated (because filenames cannot contain some special characters)
-		info = eval('cell.'+infoName).gsub(/[ ,:;=.*\/]/, '_') 	# substitute special characters with "_"
-		comment = eval('cell.'+commentName).gsub('"', "'") 		# comments cannot contain '"' - characters
+		# substitute special characters in info (to be added to clipFileName) and comment (can't contain ")
+		info = eval('cell.'+infoName).gsub(/[ ,:;=.*\/]/, '_') 	
+		comment = eval('cell.'+commentName).gsub('"', "'") 		
 			
-		count = count.to_i + 1 									# count number of videos
-        out_video = count.to_s + "_Trial.mp4" 					# video-file names
-		duration = cell.offset - cell.onset						# calculate duration of video
+		count = count.to_i + 1 											# step idx
+        out_video = videoClipName + count.to_s + "_" + info + ".mp4" 	# current file name for clip
+		duration = cell.offset - cell.onset								# calculate duration of video
 		
-		# adding metadata to video: http://wiki.multimedia.cx/index.php?title=FFmpeg_Metadata
-		metaTitle = projectName + ',' + info  					# include project name and information about specific video-clip in main title of video
-		metaComment = '"' + comment + '"'
+		# adding metadata to video (mor info: http://wiki.multimedia.cx/index.php?title=FFmpeg_Metadata)
+		metaTitle = projectName + ',' + info 	# project name and info included in metadata: title
+		metaComment = '"' + comment + '"'		# comment included in metadata: comment
 		
-		# 'command.syswrite' writes all information into the bat-file that is needed to generate the videos from the command-line
-		# put start time at beginning for faster search
-		# add metadata("info" is added in title and "comment" in comment of video-file)
-		command.syswrite("ffmpeg -ss " + (cell.onset/1000.0).to_s + " -i "  + in_video.to_s  + " -metadata title=" + metaTitle + " -metadata comment=" +  metaComment +  " -c:v " + ffmpegCode + " -preset " + ffmpegPreset + " -crf 22 " + ffmpegAudio +  " -t " + (duration.to_i/1000.0).to_s + " " + out_video + "\r\n")
+		# write ffmpeg command with all parameters to batch file
+		command.syswrite(ffmpegCommand + " -ss " + (cell.onset/1000.0).to_s + " -i "  + in_video.to_s   
+						+ " -metadata title=" + metaTitle + " -metadata comment=" +  metaComment   
+						+ " -c:v " + ffmpegCode + " -preset " + ffmpegPreset + " -crf 22 " + ffmpegAudio 
+						+ " -t " + (duration.to_i/1000.0).to_s + " " + out_video + "\r\n")
 	
 	end	
 	puts count.to_s + " videos should be generated. Check text in 'info' and 'comment' for special characters if filenumbers don't match."
