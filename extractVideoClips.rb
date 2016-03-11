@@ -19,9 +19,9 @@ require 'Datavyu_API.rb'
 begin
     # MAIN SETTINGS(ADJUST TO YOUR SYSTEM AND REQUIREMENTS)
     outputDir = "~/Desktop/Video-Tool/VideoClips/"  # output path for batch file and video clips
-    batCommand = 'extractClips.bat'                 # name of batch file
+    batchCommand = 'extractClips.bat'               # name of batch file
     videoColumn = 'video'                           # name of the column defining the video clips
-    videoClipName = 'Clip'                          # name of video clips (idx and info will be added)
+    videoClipBase = 'Clip'                          # base name of video clips (idx and info will be added)
     infoName = 'info'                               # name of cell code n videoColumn, that contains
                                                     #   general info to be included as metadata (title)
     commentName = 'comment'                         # name of cell code n videoColumn, that contains
@@ -39,8 +39,8 @@ begin
 
     
     # FILE NAMES AND DIRECTORIES
-    out_file = File.expand_path(outputDir) +'/'     # output path
-    command = File.new(out_file + batCommand, 'w')  # batch file name
+    outputDir = File.expand_path(outputDir) +'/'         # output path
+    batchFile = File.new(outputDir + batchCommand, 'w')  # create batch file
     
     # GET FILE NAME OF CURRENT VIDEO
     dvs = $viewers.dataViewers.toArray              # get data viewers (one for each media source)
@@ -65,7 +65,6 @@ begin
     # to generate corresponding video clip. the batch script needs to be executed to actually run
     # ffmpeg and extract the video clips.
     
-    in_video = videoFileName 
     projectName = $pj.getProjectName
     count = 0                                        # idx counting video number
     
@@ -76,21 +75,25 @@ begin
         info = eval('cell.'+infoName).gsub(/[ ,:;=.*\/]/, '_')     
         comment = eval('cell.'+commentName).gsub('"', "'")         
             
-        count = count.to_i + 1                                          # step idx
-        out_video = videoClipName + count.to_s + "_" + info + ".mp4"    # current file name for clip
-        duration = cell.offset - cell.onset                             # calculate duration of video
+        count = count + 1                                                   # step idx
+        videoClipName = videoClipBase + count.to_s + "_" + info + ".mp4"    # current file name for clip
+        duration = cell.offset - cell.onset                                 # calculate duration of video
         
-        # adding metadata to video (mor info: http://wiki.multimedia.cx/index.php?title=FFmpeg_Metadata)
+        # adding metadata to video (more info: http://wiki.multimedia.cx/index.php?title=FFmpeg_Metadata)
         metaTitle = projectName + ',' + info     # project name and info included in metadata: title
         metaComment = '"' + comment + '"'        # comment included in metadata: comment
         
         # write ffmpeg command with all parameters to batch file
-        command.syswrite(ffmpegCommand + " -ss " + (cell.onset/1000.0).to_s + " -i "  + in_video.to_s   
+        batchFile.syswrite(ffmpegCommand + " -ss " + (cell.onset/1000.0).to_s + " -i "  + videoFileName 
                         + " -metadata title=" + metaTitle + " -metadata comment=" +  metaComment   
                         + " -c:v " + ffmpegCode + " -preset " + ffmpegPreset + " -crf 22 " + ffmpegAudio 
-                        + " -t " + (duration.to_i/1000.0).to_s + " " + out_video + "\r\n")
+                        + " -t " + (duration.to_i/1000.0).to_s + " " + videoClipName + "\r\n")
     
     end    
-    puts count.to_s + " videos should be generated. Check text in 'info' and 'comment' for special characters if filenumbers don't match."
+
+    # SUMMARY OUTPUT AT END
+    puts "A batch file with ffmpeg commands was generated:" + outputDir + batchCommand 
+    puts "By running the batch, " + count.to_s + " videos should be generated."
+    puts "Check values in 'info' and 'comment' for special characters if filenumbers don't match."
 end        
 
