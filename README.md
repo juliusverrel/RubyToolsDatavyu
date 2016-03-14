@@ -1,6 +1,6 @@
 # RubyToolsDatavyu
 
-Useful Ruby scripts for the video coding software Datavyu.
+Useful Ruby scripts for the video coding software [Datavyu](http://datavyu.org/).
 
 **Main developer:** Julius Verrel (contributions indicated below and in scripts)
 
