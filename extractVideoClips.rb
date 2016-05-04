@@ -20,7 +20,7 @@ begin
     # MAIN SETTINGS(ADJUST TO YOUR SYSTEM AND REQUIREMENTS)
     outputDir = "~/Desktop/Video-Tool/VideoClips/"  # output path for batch file and video clips
     batchCommand = 'extractClips.bat'               # name of batch file
-    videoColumn = 'video'                           # name of the column defining the video clips
+    videoColumn = 'extractVideo'                    # name of the column defining the video clips
     videoClipBase = 'Clip'                          # base name of video clips (idx and info will be added)
     infoName = 'info'                               # name of cell code n videoColumn, that contains
                                                     #   general info to be included as metadata (title)
@@ -56,7 +56,8 @@ begin
     if columns.include?(videoColumn)                             
         video = getVariable(videoColumn)            # get video-column if it exists        
     else
-        raise "No column called "+ videoColumn + "!"
+        puts "No column called "+ videoColumn + "!"
+        continue
     end
     
     # GENERATE BATCH SCRIPT
@@ -76,7 +77,7 @@ begin
         comment = eval('cell.'+commentName).gsub('"', "'")         
             
         count = count + 1                                                   # step idx
-        videoClipName = videoClipBase + count.to_s + "_" + info + ".mp4"    # current file name for clip
+        videoClipName = projectName + '_' + videoClipBase + count.to_s + "_" + info + ".mp4"    # current file name for clip
         duration = cell.offset - cell.onset                                 # calculate duration of video
         
         # adding metadata to video (more info: http://wiki.multimedia.cx/index.php?title=FFmpeg_Metadata)
@@ -84,8 +85,8 @@ begin
         metaComment = '"' + comment + '"'        # comment included in metadata: comment
         
         # write ffmpeg command with all parameters to batch file
-        batchFile.syswrite(ffmpegCommand + " -ss " + (cell.onset/1000.0).to_s + " -i "  + videoFileName \
-                        + " -metadata title=" + metaTitle + " -metadata comment=" +  metaComment \  
+        batchFile.syswrite(ffmpegCommand + " -ss " + (cell.onset/1000.0).to_s + " -i "  + '"' + videoFileName + '"' \
+                        + " -metadata title=" + metaTitle + " -metadata comment=" +  metaComment \
                         + " -c:v " + ffmpegCode + " -preset " + ffmpegPreset + " -crf 22 " + ffmpegAudio \
                         + " -t " + (duration.to_i/1000.0).to_s + " " + videoClipName + "\r\n")
     end    
